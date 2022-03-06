@@ -1,5 +1,6 @@
 //const tc = artifacts.require("Payable");
 const Factory = artifacts.require("Factory");
+const Team = artifacts.require("Team");
 const sending = '0.000001';
 
 contract('TestTeam', async (accounts) => {
@@ -23,25 +24,46 @@ contract('TestTeam', async (accounts) => {
 
     it('create a team', async () => {
         var _nicks = ['@0xBosky','@elonmusk'], 
-            _addresses = [accounts[0]],
+            _addresses = [accounts[2], accounts[3]],
              _avatars = ["🐑","💕"],
              _shares = [50,50];
              
-        var team = await factory.createTeam("Team Mars", _nicks, _avatars, _addresses, _shares).then(function(result) {
+        var team = await factory.createTeam("Team Mars", _nicks, _avatars, _addresses, _shares)
+        .then(function(result) {
             var events = result.receipt.logs;
-            //console.log('got events:', events);
+            console.log('got events:', events);
             assert.equal(events[0].event, 'TeamCreated');
             return result;
-        });
+        })
+        ;
 
         assert.exists(team.tx);
         assert.exists(team.receipt);
     });
 
-    it('getMember should work with a team', async () => {
+    it('getTeamAddress should work with a team', async () => {
         var getTeam = await factory.getTeamAddress(0).catch(er => "");
         assert.equal(getTeam.substr(0,2),"0x");
     });
+
+    it('getTeam should return a team of 2', async () => {
+        var _addressMars = await factory.getTeam(0);
+        assert.equal(_addressMars.substr(0,2),"0x");
+        console.log('addressMars:',_addressMars);
+        var _teamMars = await Team.at(_addressMars);
+        var getCount = (await _teamMars.getCount().catch(er => 0)).toNumber();
+        console.log('got team count of mars as ',getCount);
+        assert.equal(getCount,2);
+
+        var member1 = await _teamMars.getMember(0).catch(er => er);
+        console.log('mars member1:', member1);
+        assert.equal(member1['0'],'@0xBosky');
+
+        var member2 = await _teamMars.getMember(1).catch(er => er);
+        console.log('mars member2:', member2, typeof member2['0']);
+        assert.equal(member2['0'],'@elonmusk');
+    });
+
 
     /*it('create a child ', async () => {
         var child = await factory.createChild(accounts[4]);

@@ -38,6 +38,10 @@ contract Factory{
      
      function getTeamAddress(uint _index) external view returns(address){
        return address(teams[_index]);
+     }
+
+     function getTeam(uint _index) external view returns(Team){
+       return teams[_index];
      }  
  
 }
