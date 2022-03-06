@@ -17,8 +17,8 @@ contract('TestTeam', async (accounts) => {
     });
 
     it('getMember should fail without a team', async () => {
-        var getTeam = await factory.getTeamAddress(0).catch(er => false);
-        assert.equal(getTeam,false);
+        var getTeam = await factory.getTeamAddress(0).catch(er => "");
+        assert.equal(getTeam, "");
     });
 
     it('create a team', async () => {
@@ -26,12 +26,19 @@ contract('TestTeam', async (accounts) => {
             _addresses = [accounts[0]],
              _avatars = ["🐑","💕"],
              _shares = [50,50];
-        var team = await factory.createTeam("Team Mars", _nicks, _avatars, _addresses, _shares);
+             
+        var team = await factory.createTeam("Team Mars", _nicks, _avatars, _addresses, _shares).then(function(result) {
+            var events = result.receipt.logs;
+            //console.log('got events:', events);
+            assert.equal(events[0].event, 'TeamCreated');
+            return result;
+        });
+
         assert.exists(team.tx);
         assert.exists(team.receipt);
     });
 
-    it('getMember should fail without a team', async () => {
+    it('getMember should work with a team', async () => {
         var getTeam = await factory.getTeamAddress(0).catch(er => "");
         assert.equal(getTeam.substr(0,2),"0x");
     });

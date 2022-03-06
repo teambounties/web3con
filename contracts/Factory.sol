@@ -24,6 +24,10 @@ contract Factory{
        return address(team);
      }
      
+     function getAddress() external view returns(address){
+       return address(this);
+     }
+
      function getTeams() external view returns(Team[] memory _teams){
        return teams;
      }
