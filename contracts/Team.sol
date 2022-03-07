@@ -15,6 +15,7 @@ contract Team {
 	string[] nicks;
 	address payable[] addresses;
 	address payable owner;
+	address payable creator;
 	event Debug(string msg);
 	event DebugValue(string msg, uint);
 	event DebugMember(string, string, address payable, uint);
@@ -32,7 +33,7 @@ contract Team {
 	  _;
 	}
 
-	constructor (string[] memory _nicks, string[] memory _avatars, address payable[] memory _addresses, uint8[] memory _shares) {
+	constructor (address payable _creator, string[] memory _nicks, string[] memory _avatars, address payable[] memory _addresses, uint8[] memory _shares) {
 	 	//require(!initialized, "Contract instance has already been initialized");
         initialized = true;
 		emit Debug("initialize ok");
@@ -41,6 +42,7 @@ contract Team {
 			members.push(Member(_nicks[i], _avatars[i], _addresses[i], _shares[i]));
 		}
 		owner = payable(msg.sender);
+		creator = _creator;
 	}
 
 	function getCount() view public returns (uint){
@@ -49,6 +51,10 @@ contract Team {
 
 	function getBalance() view public returns (uint256 _balance){
 		return address(this).balance;
+	}
+
+	function getCreator() view public returns (address){
+		return creator;
 	}
 
 	function getMember(uint i) view public isInitialized hasTeam(i) returns (string memory, string memory, address, uint8) {
@@ -63,6 +69,7 @@ contract Team {
 	function getOwner() view public returns (address){
 		return owner;
 	}
+
 
 	function dust() public payable {
 		uint balance = address(this).balance;

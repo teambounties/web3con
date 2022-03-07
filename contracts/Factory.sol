@@ -9,7 +9,7 @@ contract Factory{
   	 string[] public names;
      address payable owner;
 
-    event TeamCreated(address TeamAddress);
+    event TeamCreated(address, address);
     event ReceivedFromToValue(address, address, uint);
   	event DebugFromToValue(string, address, address, uint);
 
@@ -30,10 +30,10 @@ contract Factory{
 
     function createTeam(string memory name, string[] memory _nicks, string[] memory _avatars, address payable [] memory _addresses, uint8[] memory _shares) public returns (address){
        names.push(name);
-       Team team = new Team(_nicks,_avatars,_addresses,_shares);
+       Team team = new Team(payable(msg.sender), _nicks,_avatars,_addresses,_shares);
        teams.push(team);
        count++;
-       emit TeamCreated(address(team));
+       emit TeamCreated(address(team), msg.sender);
        return address(team);
      }
      
