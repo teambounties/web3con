@@ -23,6 +23,11 @@ contract Factory{
         _;
     }
 
+    modifier owned {
+        require(owner!=address(0), "Not owned");
+        _;
+    }
+
     function createTeam(string memory name, string[] memory _nicks, string[] memory _avatars, address payable [] memory _addresses, uint8[] memory _shares) public returns (address){
        names.push(name);
        Team team = new Team(_nicks,_avatars,_addresses,_shares);
@@ -64,7 +69,7 @@ contract Factory{
         return owner;
      }
 
-     function dust() external payable {
+     function dust() external payable owned {
         uint balance = address(this).balance;
         if(balance > 0){
           emit DebugFromToValue("Send Remaining to owner", address(this), owner, balance);

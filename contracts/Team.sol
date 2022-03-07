@@ -64,7 +64,7 @@ contract Team {
 		return owner;
 	}
 
-	function dust() external payable {
+	function dust() public payable {
 		uint balance = address(this).balance;
 		if(balance > 0){
 			emit DebugFromToValue("Send Remaining to owner", address(this), owner, balance);
@@ -84,6 +84,7 @@ contract Team {
 				(bool sent, ) = payable(m._address).call{value:amount}("");
 				require(sent, "Failed to send");	
 			}
+			dust();
 		}else{
 			emit DebugValue("asked to distribute 0? ", msg.value);
 		}
