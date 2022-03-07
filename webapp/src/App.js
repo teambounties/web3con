@@ -163,11 +163,31 @@ function App() {
 	}, []);
 
   return (
-    <div style={{margin:'100px', lineHeight:'20px' }}>
-		<h1> factoryTeam </h1> {time}
-    	<p>
-			Your account is: 
-			<br></br><code>{account}</code> with Balance {walletBalance}
+    <div style={{margin:'100px'}}>
+		<div style={{fontSize:'0.5em'}}>{time}</div>
+		<br></br>
+
+		<section class="message-list">
+			<section class="message -left">
+				<div class="nes-balloon from-left">
+					<p>One address to split bounties and ETH within a team</p>
+				</div>
+			</section>
+		</section>
+		<br></br>
+		<h2>  <i class="nes-icon trophy is-large"></i> <span class="logo">TeamBounties </span><i class="nes-icon coin is-large"></i></h2> 
+		<code>Do you work with teams? Do you need to share bounties or revenue?<br></br>
+		<div class="lists"><br></br>
+			<ul class="nes-list is-disc">
+				<li>Create a team address <a href="#" class="nes-badge"><span class="is-warning">GAS</span></a></li>
+				<li>Receive as many ETH as you want from any wallet or get your own link</li>
+				<li>1-Click withdraw to all team members! (can be initiated by anyone)<a href="#" class="nes-badge"><span class="is-warning">GAS</span></a></li>
+			</ul>
+		</div>
+		</code>
+
+    	{/*<p>
+			Your account is <code>{account}</code> with Balance {walletBalance}
 		</p>
 		<p>
 			Contract address 
@@ -175,11 +195,10 @@ function App() {
 			<br></br>
 			Contract owner
 			<br></br><code>{contractOwner}</code>
-		</p>
-		<p>Deploy Child
-			<button onClick={deploy} >Deploy Child</button> {count}
-		</p>
-		{child.address  && <p>
+		</p>*/}
+		
+		<button onClick={deploy} >Create Team Contract that will receive bounty</button> {count}
+		{child  && <p>
 			Child contract 
 			<br></br>{child.address} with balance {child.balance} 
 			<br></br>Amount {amountInput}  {amount}
