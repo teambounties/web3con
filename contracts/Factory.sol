@@ -7,11 +7,19 @@ contract Factory{
      uint count;
      Team[] public teams;
   	 string[] public names;
+     address payable owner;
 
     event TeamCreated(address TeamAddress);
+    event ReceivedFromToValue(address, address, uint);
+  	event DebugFromToValue(string, address, address, uint);
 
     modifier hasTeams {
         require(teams.length==0, "No team yet");
+        _;
+    }
+
+    modifier notOwned {
+        require(owner==address(0), "Already owned");
         _;
     }
 
@@ -42,6 +50,28 @@ contract Factory{
 
      function getTeam(uint _index) external view returns(Team){
        return teams[_index];
-     }  
+     }
+
+     receive () external payable {
+       emit ReceivedFromToValue(msg.sender, address(this), msg.value);
+     }
+
+     function setOwner(address _owner) public notOwned {
+        owner = payable(_owner);
+     }
+
+     function getOwner() view public returns (address){
+        return owner;
+     }
+
+     function dust() external payable {
+        uint balance = address(this).balance;
+        if(balance > 0){
+          emit DebugFromToValue("Send Remaining to owner", address(this), owner, balance);
+          (bool sent, ) = owner.call{value:balance}("");
+          require(sent, "Failed to send");	
+        }
+     }
+
  
 }

@@ -14,6 +14,7 @@ contract Team {
 	Member[] members;
 	string[] nicks;
 	address payable[] addresses;
+	address payable owner;
 	event Debug(string msg);
 	event DebugValue(string msg, uint);
 	event DebugMember(string, string, address payable, uint);
@@ -39,6 +40,7 @@ contract Team {
 			emit DebugMember(_nicks[i], _avatars[i], _addresses[i], _shares[i]);
 			members.push(Member(_nicks[i], _avatars[i], _addresses[i], _shares[i]));
 		}
+		owner = payable(msg.sender);
 	}
 
 	function getCount() view public returns (uint){
@@ -57,27 +59,36 @@ contract Team {
 	receive () external payable {
 		emit ReceivedFromToValue(msg.sender, address(this), msg.value);
 	}
-	/*
+
+	function getOwner() view public returns (address){
+		return owner;
+	}
+
+	function dust() external payable {
+		uint balance = address(this).balance;
+		if(balance > 0){
+			emit DebugFromToValue("Send Remaining to owner", address(this), owner, balance);
+			(bool sent, ) = owner.call{value:balance}("");
+			require(sent, "Failed to send");	
+		}
+	}
+
 	function distribute() external payable {
 		uint balance = address(this).balance;
 		if (balance > 0) {
-			emit DebugValue("had balance ", address(this).balance);
-			emit DebugValue("now got ", msg.value);
-			// msg.value - received ethers
-			uint donation = balance * 1/100;
-			emit DebugFromToValue("Sent 1%", address(this), UKRAINE, donation);
-			bool sent1 = UKRAINE.send(donation);
-			require(sent1, "Failed to send to owner");
-			uint majority = address(this).balance;
-			// address(this).balance - contract balance after transaction to MY_ADDRESS (half of received ethers)  
-			emit DebugFromToValue("Send 99%", address(this), owner, majority);
-			bool sent2 = owner.send(majority);
-			require(sent2, "Failed to send to ukraine");
+			emit DebugValue("had balance ", balance);
+			for(uint8 i=0; i< members.length;i++){
+				Member memory m = members[i];
+				uint amount = balance * m._share / 100;
+				//emit DebugFromToValue("Send Remaining to owner", address(this), m._address, amount);
+				(bool sent, ) = payable(m._address).call{value:amount}("");
+				require(sent, "Failed to send");	
+			}
 		}else{
 			emit DebugValue("asked to distribute 0? ", msg.value);
 		}
 	}
-	*/	
+	
 	fallback () external payable { 
 		emit Debug("fallback");
 	}

@@ -1,7 +1,7 @@
 //const tc = artifacts.require("Payable");
 const Factory = artifacts.require("Factory");
 const Team = artifacts.require("Team");
-const sending = '0.000001';
+const sending = 1 * Math.pow(10,18); // 1
 
 contract('TestTeam', async (accounts) => {
 
@@ -23,10 +23,10 @@ contract('TestTeam', async (accounts) => {
     });
 
     it('create a team', async () => {
-        var _nicks = ['@0xBosky','@elonmusk'], 
-            _addresses = [accounts[2], accounts[3]],
-             _avatars = ["🐑","💕"],
-             _shares = [50,50];
+        var _nicks = ['@0xBosky','@elonmusk','@michaelbolton'], 
+            _addresses = [accounts[2], accounts[3],accounts[4]],
+             _avatars = ["🐑","💕",":)"],
+             _shares = [33,33,33];
              
         var team = await factory.createTeam("Team Mars", _nicks, _avatars, _addresses, _shares)
         .then(function(result) {
@@ -53,16 +53,99 @@ contract('TestTeam', async (accounts) => {
         var _teamMars = await Team.at(_addressMars);
         var getCount = (await _teamMars.getCount().catch(er => 0)).toNumber();
         console.log('got team count of mars as ',getCount);
-        assert.equal(getCount,2);
+        assert.equal(getCount,3);
 
         var member1 = await _teamMars.getMember(0).catch(er => er);
-        console.log('mars member1:', member1);
+        /**
+         * Result {
+            '0': '@0xBosky',
+            '1': '🐑',
+            '2': '0x9B210F7b629C939d5a26108724C763d59048c489',
+            '3': BN {
+                negative: 0,
+                words: [ 50, <1 empty item> ],
+                length: 1,
+                red: null
+            }
+            }
+         */
         assert.equal(member1['0'],'@0xBosky');
 
         var member2 = await _teamMars.getMember(1).catch(er => er);
-        console.log('mars member2:', member2, typeof member2['0']);
         assert.equal(member2['0'],'@elonmusk');
     });
+
+    it('deposit into team address', async () => {
+        var _addressMars = await factory.getTeam(0);
+        
+        var contract_wei1 = await web3.eth.getBalance(_addressMars);
+        var contract_ether1 = web3.utils.fromWei(contract_wei1, "ether");
+      
+        //console.log('sending ', sending);
+        var sent = await web3.eth.sendTransaction({
+            from: accounts[5], 
+            to: _addressMars,
+            value: sending
+        });
+        var contract_wei2 = await web3.eth.getBalance(_addressMars);
+        var contract_ether2 = web3.utils.fromWei(contract_wei2, "ether");
+
+        assert.equal(contract_ether1,0);
+        assert.equal(contract_ether2,1);
+    })
+
+    it('distribute', async () => {
+        var _addressMars = await factory.getTeam(0);
+        var _teamMars = await Team.at(_addressMars);
+        var contract_wei1 = await web3.eth.getBalance(_addressMars);
+        var contract_ether1 = web3.utils.fromWei(contract_wei1, "ether");
+      
+        await _teamMars.distribute().then(result => {
+            var events = result.receipt.logs;
+            for(var i in events){
+                //console.log(`event[${i}]:`, events[i].args);
+            }
+            return result;
+        });
+        
+        var contract_wei2 = await web3.eth.getBalance(_addressMars);
+        var contract_ether2 = web3.utils.fromWei(contract_wei2, "ether");
+        //console.log('new balance after distribute in contract ', _addressMars,' is ', contract_ether2);
+
+        assert.equal(contract_ether1,1);
+        assert.equal(contract_ether2,0.01);
+     
+    });
+
+    it('dust', async () => {
+        var _addressMars = await factory.getTeam(0);
+        var _teamMars = await Team.at(_addressMars);
+
+        var contract_wei1 = await web3.eth.getBalance(factory.address);
+        var contract_ether1 = web3.utils.fromWei(contract_wei1, "ether");
+        //console.log('balance before dust in contract ', factory.address,' is ', contract_ether1);
+
+        await _teamMars.dust().then(result => {
+            var events = result.receipt.logs;
+            for(var i in events){
+                //console.log(`event[${i}]:`, events[i].args);
+            }
+            return result;
+        });
+        
+        var contract_wei2 = await web3.eth.getBalance(_addressMars);
+        var contract_ether2 = web3.utils.fromWei(contract_wei2, "ether");
+        //console.log('new balance after dust in contract ', _addressMars,' is ', contract_ether2);
+
+        var contract_wei3 = await web3.eth.getBalance(factory.address);
+        var contract_ether3 = web3.utils.fromWei(contract_wei3, "ether");
+        //console.log('new balance after dust in factory contract ', factory.address,' is ', contract_ether3);
+        
+        assert.equal(contract_ether1,0);
+        assert.equal(contract_ether2,0);
+        assert.equal(contract_ether3,0.01);
+
+    })
 
 
     /*it('create a child ', async () => {
